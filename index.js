@@ -13,8 +13,6 @@ app.use(express.json());
 const sessionKey = crypto.randomBytes(32).toString('hex');
 
 
-
-
 app.get('/events', (req, resp) => {
     readFile('./db.json', 'utf-8', (err, json) => {
         if(err) {
@@ -51,25 +49,25 @@ app.put('/events', (req, resp) => {
 
 
 app.post('/login', (req, resp) => {
+    
     const pwInput = req.body;
+    
     readFile('./auth.json', 'utf-8', (err, json) => {
         if(err) {
             resp.status(500).send('Server Error');
         }
         try {
             const auth = JSON.parse(json);
-            //const hash = crypto.createHash('sha256');
-            //hash.update(pwInput.password);
-            //const hashedPassword = hash.digest('hex');
-            if (pwInput.password === auth.pwHash) {
+            const hash = crypto.createHash('sha256');
+            hash.update(pwInput.password);
+            const hashedPassword = hash.digest('hex');
+            if (hashedPassword === auth.pwHash) {
                 resp.status(200).json({
-                    success: true,
-                    sessionKey: sessionKey
+                    token: sessionKey
                 });
             } else {
                 resp.status(401).json({
-                    success: false,
-                    message: "Invalid credentials"
+                    sessionKey: null
                 });
             }
         } catch (e) {
@@ -82,7 +80,6 @@ app.post('/login', (req, resp) => {
 if(!args.pw) {
     console.log("No password provided");
 } else {
-    
     readFile('./auth.json', 'utf-8', (err, json) => {
         if(err) {
             console.error("error reading auth.json");
@@ -93,7 +90,6 @@ if(!args.pw) {
         hash.update(args.pw);
         const hashedPassword = hash.digest('hex');
         db.pwHash = hashedPassword;
-        console.log(hashedPassword);
         writeFile('./auth.json', JSON.stringify(db, null, 2), (err) => {
             if(err) {
                 console.error("error writing auth.json");
