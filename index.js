@@ -49,9 +49,7 @@ app.put('/events', (req, resp) => {
 
 
 app.post('/login', (req, resp) => {
-    
     const pwInput = req.body;
-    
     readFile('./auth.json', 'utf-8', (err, json) => {
         if(err) {
             resp.status(500).send('Server Error');
@@ -74,7 +72,20 @@ app.post('/login', (req, resp) => {
             resp.status(500).send('Invalid JSON');
         }       
     })
-})
+});
+
+app.get('/auth', (req, resp) => {
+    
+    const token = req.get('Authorization');
+    console.log(token);
+    console.log(sessionKey);
+    if(token == sessionKey) {
+        resp.sendStatus(200);
+    } else {
+        resp.sendStatus(401);
+    }
+});
+
 
 
 if(!args.pw) {
